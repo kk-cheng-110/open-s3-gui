@@ -110,5 +110,16 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: true
+          body: |
+            ## macOS 安装说明
+            
+            如果遇到 **"应用已损坏"** 提示，请在终端执行以下命令：
+            ```bash
+            xattr -cr /Applications/Open\ S3.app
+            ```
+            
+            或者右键点击应用选择“打开”。
+            
+            详细说明请查看 [INSTALL-MACOS.md](https://github.com/kk-cheng-110/open-s3-gui/blob/main/INSTALL-MACOS.md)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
