@@ -295,6 +295,19 @@ app.whenReady().then(() => {
                     // 处理重定向
                     if (response.statusCode === 302 || response.statusCode === 301) {
                         https.get(response.headers.location, (redirectResponse) => {
+                            const totalSize = parseInt(redirectResponse.headers['content-length'], 10)
+                            let downloadedSize = 0
+
+                            redirectResponse.on('data', (chunk) => {
+                                downloadedSize += chunk.length
+                                const progress = totalSize > 0 ? Math.round((downloadedSize / totalSize) * 100) : 0
+                                mainWindow.webContents.send('update:progress', {
+                                    downloaded: downloadedSize,
+                                    total: totalSize,
+                                    progress: progress
+                                })
+                            })
+
                             redirectResponse.pipe(file)
 
                             file.on('finish', () => {
@@ -307,6 +320,19 @@ app.whenReady().then(() => {
                             reject(err)
                         })
                     } else {
+                        const totalSize = parseInt(response.headers['content-length'], 10)
+                        let downloadedSize = 0
+
+                        response.on('data', (chunk) => {
+                            downloadedSize += chunk.length
+                            const progress = totalSize > 0 ? Math.round((downloadedSize / totalSize) * 100) : 0
+                            mainWindow.webContents.send('update:progress', {
+                                downloaded: downloadedSize,
+                                total: totalSize,
+                                progress: progress
+                            })
+                        })
+
                         response.pipe(file)
 
                         file.on('finish', () => {

@@ -111,7 +111,20 @@
         </div>
         <div class="update-changelog">
           <h4>更新内容</h4>
-          <div class="changelog-content" v-html="formattedChangelog"></div>
+          <div class="changelog-content" v-html="formattedChangelog" @click="handleChangelogClick"></div>
+        </div>
+        <!-- 下载进度 -->
+        <div v-if="downloading" class="download-progress">
+          <div class="progress-info">
+            <span class="progress-text">下载中...</span>
+            <span class="progress-percent">{{ downloadProgress.progress }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" :style="{ width: downloadProgress.progress + '%' }"></div>
+          </div>
+          <div class="progress-size">
+            {{ formatBytes(downloadProgress.downloaded) }} / {{ formatBytes(downloadProgress.total) }}
+          </div>
         </div>
         <div class="dialog-actions">
           <button @click="closeUpdateDialog">稍后提醒</button>
@@ -134,7 +147,14 @@ import {
   CreateOutline,
   TrashOutline
 } from '@vicons/ionicons5'
+import {marked} from 'marked'
 import Browser from './views/Browser.vue'
+
+// 配置 marked
+marked.setOptions({
+  breaks: true, // 支持 GitHub 风格的换行
+  gfm: true, // 启用 GitHub Flavored Markdown
+})
 
 const connections = ref([])
 const currentConnectionId = ref('')
@@ -143,6 +163,11 @@ const editing = ref(null)
 const updateInfo = ref(null)
 const showUpdateDialog = ref(false)
 const downloading = ref(false)
+const downloadProgress = ref({
+  downloaded: 0,
+  total: 0,
+  progress: 0
+})
 const form = reactive({
   id: '',
   name: '',
@@ -214,16 +239,8 @@ async function deleteConnection(id) {
 // 更新相关
 const formattedChangelog = computed(() => {
   if (!updateInfo.value?.releaseNotes) return ''
-  // 将 Markdown 格式的更新说明转为 HTML
-  return updateInfo.value.releaseNotes
-      .replace(/###\s+(.+)/g, '<h5>$1</h5>')
-      .replace(/##\s+(.+)/g, '<h4>$1</h4>')
-      .replace(/#\s+(.+)/g, '<h3>$1</h3>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/^-\s+(.+)/gm, '<li>$1</li>')
-      .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-      .replace(/\n/g, '<br>')
+  // 使用 marked 解析 markdown
+  return marked.parse(updateInfo.value.releaseNotes)
 })
 
 async function manualCheckUpdate() {
@@ -247,6 +264,13 @@ async function downloadUpdate() {
 
   try {
     downloading.value = true
+    // 重置进度
+    downloadProgress.value = {
+      downloaded: 0,
+      total: 0,
+      progress: 0
+    }
+
     const result = await window.electron.downloadUpdate(
         updateInfo.value.downloadUrl,
         updateInfo.value.downloadName
@@ -269,6 +293,14 @@ async function downloadUpdate() {
   }
 }
 
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
+}
+
 function openReleaseUrl() {
   if (!window.electron || !updateInfo.value) return
   window.electron.openDownloadPage(updateInfo.value.releaseUrl)
@@ -276,6 +308,17 @@ function openReleaseUrl() {
 
 function closeUpdateDialog() {
   showUpdateDialog.value = false
+}
+
+// 处理 changelog 中的链接点击
+function handleChangelogClick(e) {
+  if (e.target.tagName === 'A') {
+    e.preventDefault()
+    const url = e.target.getAttribute('href')
+    if (url && window.electron) {
+      window.electron.openDownloadPage(url)
+    }
+  }
 }
 
 onMounted(() => {
@@ -287,12 +330,18 @@ onMounted(() => {
       updateInfo.value = info
       showUpdateDialog.value = true
     })
+
+    // 监听下载进度
+    window.electron.onUpdateProgress((progress) => {
+      downloadProgress.value = progress
+    })
   }
 })
 
 onUnmounted(() => {
   if (window.electron) {
     window.electron.removeUpdateListener()
+    window.electron.removeUpdateProgressListener()
   }
 })
 </script>
@@ -678,5 +727,100 @@ input:focus, select:focus {
 .changelog-content :deep(em) {
   color: #6b7280;
   font-style: italic;
+}
+
+.changelog-content :deep(p) {
+  margin: 8px 0;
+  line-height: 1.6;
+}
+
+.changelog-content :deep(code) {
+  background: #1f2937;
+  color: #e5e7eb;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 12px;
+}
+
+.changelog-content :deep(pre) {
+  background: #1f2937;
+  color: #e5e7eb;
+  padding: 12px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 12px 0;
+}
+
+.changelog-content :deep(pre code) {
+  background: transparent;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.changelog-content :deep(a) {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.changelog-content :deep(a:hover) {
+  text-decoration: underline;
+}
+
+.changelog-content :deep(blockquote) {
+  border-left: 3px solid #e5e7eb;
+  padding-left: 12px;
+  margin: 12px 0;
+  color: #6b7280;
+}
+
+/* 下载进度条 */
+.download-progress {
+  margin-bottom: 16px;
+  padding: 16px;
+  background: #f0f9ff;
+  border-radius: 8px;
+  border: 1px solid #bfdbfe;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.progress-text {
+  font-size: 13px;
+  color: #1e40af;
+  font-weight: 500;
+}
+
+.progress-percent {
+  font-size: 14px;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #dbeafe;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.progress-size {
+  font-size: 12px;
+  color: #6b7280;
+  text-align: right;
 }
 </style>

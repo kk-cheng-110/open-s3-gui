@@ -1,6 +1,6 @@
 {
   "name": "open-s3-ui",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "description": "A desktop S3 browser tool built with Electron and Vue",
   "author": {
     "name": "kk.cheng",
@@ -109,6 +109,7 @@
     "@aws-sdk/client-s3": "^3.947.0",
     "@vicons/ionicons5": "^0.13.0",
     "electron-updater": "^6.6.2",
+    "marked": "^17.0.1",
     "naive-ui": "^2.43.2"
   }
 }
