@@ -19,14 +19,39 @@
         <!-- 顶部工具栏 -->
         <div class="toolbar">
           <div class="path-bar">
-            <button class="path-btn" @click="goToRoot" title="返回根目录">🏠</button>
+            <button class="path-btn home-btn" @click="goToRoot" title="返回根目录">
+              <n-icon><home-outline /></n-icon>
+            </button>
             <span class="path-separator">/</span>
-            <template v-for="(part, idx) in pathParts" :key="idx">
-              <button class="path-btn" @click="goToPath(idx)">
-                {{ part }}
-              </button>
-              <span v-if="idx < pathParts.length - 1" class="path-separator">/</span>
-            </template>
+            
+            <!-- 路径编辑模式 -->
+            <div v-if="pathEditMode" class="path-input-wrapper">
+              <input 
+                ref="pathInput"
+                v-model="pathInputValue" 
+                class="path-input"
+                placeholder="输入路径，回车跳转"
+                @keyup.enter="navigateToPath"
+                @keyup.esc="exitPathEditMode"
+                @keydown="handlePathInputKeydown"
+                @blur="exitPathEditMode"
+              />
+            </div>
+            
+            <!-- 路径面包屑模式 -->
+            <div v-else class="path-breadcrumb" @click="enterPathEditMode">
+              <template v-if="pathParts.length === 0">
+                <span class="path-text">根目录</span>
+              </template>
+              <template v-else>
+                <template v-for="(part, idx) in pathParts" :key="idx">
+                  <button class="path-btn" @click.stop="goToPath(idx)">
+                    {{ part }}
+                  </button>
+                  <span v-if="idx < pathParts.length - 1" class="path-separator">/</span>
+                </template>
+              </template>
+            </div>
           </div>
           <div class="toolbar-actions">
             <n-button text @click="toggleViewMode" :title="viewMode === 'grid' ? '列表模式' : '卡片模式'">
@@ -271,13 +296,14 @@
 </template>
 
 <script setup>
-import {watch, ref, computed, onMounted, onBeforeUnmount} from 'vue'
+import {watch, ref, computed, onMounted, onBeforeUnmount, nextTick} from 'vue'
 import {NButton, NIcon} from 'naive-ui'
 import {
   GridOutline,
   ListOutline,
   CloudUploadOutline,
-  RefreshOutline
+  RefreshOutline,
+  HomeOutline
 } from '@vicons/ionicons5'
 
 const props = defineProps({
@@ -294,6 +320,11 @@ const loading = ref(false)
 const isDragOver = ref(false)
 const uploadList = ref([])
 let uploadIdCounter = 0
+
+// 路径编辑模式
+const pathEditMode = ref(false)
+const pathInputValue = ref('')
+const pathInput = ref(null)
 
 // 视图模式：grid (卡片) 或 list (列表)
 const viewMode = ref('grid')
@@ -372,6 +403,46 @@ function goToPath(idx) {
   const parts = pathParts.value.slice(0, idx + 1)
   prefix.value = parts.join('/') + '/'
   reload()
+}
+
+// 进入路径编辑模式
+async function enterPathEditMode() {
+  pathInputValue.value = prefix.value
+  pathEditMode.value = true
+  await nextTick()
+  pathInput.value?.focus()
+  pathInput.value?.select()
+}
+
+// 退出路径编辑模式
+function exitPathEditMode() {
+  pathEditMode.value = false
+  pathInputValue.value = ''
+}
+
+// 导航到输入的路径
+function navigateToPath() {
+  let targetPath = pathInputValue.value.trim()
+  
+  // 移除开头和结尾的多余斜杠
+  targetPath = targetPath.replace(/^\/+/, '').replace(/\/+$/, '')
+  
+  // 如果不为空，确保以 / 结尾
+  if (targetPath) {
+    targetPath = targetPath + '/'
+  }
+  
+  prefix.value = targetPath
+  exitPathEditMode()
+  reload()
+}
+
+// 处理路径输入框的键盘事件
+function handlePathInputKeydown(e) {
+  // 当输入框激活时，阻止 Ctrl/Cmd + A 的全局事件，让浏览器默认行为生效（选中输入框文本）
+  if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
+    e.stopPropagation()
+  }
 }
 
 // 视图模式切换
@@ -1003,7 +1074,8 @@ watch(
   align-items: center;
   gap: 4px;
   flex: 1;
-  overflow-x: auto;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .path-btn {
@@ -1015,6 +1087,17 @@ watch(
   font-size: 13px;
   color: #4b5563;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  transition: background 0.15s ease;
+}
+
+.path-btn.home-btn {
+  padding: 6px;
+}
+
+.path-btn.home-btn :deep(.n-icon) {
+  font-size: 16px;
 }
 
 .path-btn:hover {
@@ -1024,6 +1107,51 @@ watch(
 .path-separator {
   color: #9ca3af;
   font-size: 13px;
+  user-select: none;
+}
+
+/* 路径编辑模式 */
+.path-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  cursor: text;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.path-breadcrumb:hover {
+  background: #f3f4f6;
+}
+
+.path-text {
+  color: #9ca3af;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.path-input-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.path-input {
+  width: 100%;
+  padding: 6px 12px;
+  border: 2px solid #2563eb;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  background: #ffffff;
+  color: #1f2933;
+  box-sizing: border-box;
+}
+
+.path-input::placeholder {
+  color: #9ca3af;
 }
 
 .toolbar-actions {

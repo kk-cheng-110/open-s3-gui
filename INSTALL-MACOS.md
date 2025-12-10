@@ -1,4 +1,4 @@
-# macOS 安装说明
+ macOS 安装说明
 
 ## 解决 "应用已损坏" 问题
 
@@ -11,14 +11,18 @@
 1. 打开终端（Terminal）
 2. 执行以下命令：
    ```bash
-   xattr -cr /Applications/Open\ S3.app
+   sudo xattr -d com.apple.quarantine /Applications/Open\ S3.app
+   ```
+   或者：
+   ```bash
+   xattr -c /Applications/Open\ S3.app
    ```
 3. 再次打开应用即可
 
 **方法 2：通过系统设置允许**
 
 1. 右键点击 Open S3 应用
-2. 选择"打开"
+2. 按住 Option 键，选择"打开"
 3. 在弹出的对话框中点击"打开"按钮
 
 ### 为什么会出现这个问题？
