@@ -10,10 +10,10 @@
 
     <div class="grid">
       <div
-        v-for="item in connections"
-        :key="item.id"
-        class="card"
-        @click="$emit('selectConnection', item.id)"
+          v-for="item in connections"
+          :key="item.id"
+          class="card"
+          @click="$emit('selectConnection', item.id)"
       >
         <div class="card-header">
           <h3>{{ item.name || '未命名连接' }}</h3>
@@ -40,27 +40,27 @@
         <div class="form">
           <label>
             <span>名称</span>
-            <input v-model="form.name" placeholder="例如：测试环境 / 生产环境" />
+            <input v-model="form.name" placeholder="例如：测试环境 / 生产环境"/>
           </label>
           <label>
             <span>主机地址（host / endpoint）</span>
-            <input v-model="form.host" placeholder="例如：http://127.0.0.1:9000" />
+            <input v-model="form.host" placeholder="例如：http://127.0.0.1:9000"/>
           </label>
           <label>
             <span>Access Key ID</span>
-            <input v-model="form.accessKeyId" />
+            <input v-model="form.accessKeyId"/>
           </label>
           <label>
             <span>Access Key Secret</span>
-            <input v-model="form.accessKeySecret" type="password" />
+            <input v-model="form.accessKeySecret" type="password"/>
           </label>
           <label>
             <span>默认 Bucket</span>
-            <input v-model="form.bucket" placeholder="例如：my-bucket" />
+            <input v-model="form.bucket" placeholder="例如：my-bucket"/>
           </label>
           <label>
             <span>Region（可选）</span>
-            <input v-model="form.region" placeholder="例如：us-east-1" />
+            <input v-model="form.region" placeholder="例如：us-east-1"/>
           </label>
         </div>
         <div class="dialog-actions">
@@ -73,7 +73,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import {onMounted, reactive, ref} from 'vue'
 
 const connections = ref([])
 const showForm = ref(false)
@@ -88,12 +88,12 @@ const form = reactive({
   region: ''
 })
 
-async function load () {
+async function load() {
   if (!window.electron) return
   connections.value = await window.electron.listConnections()
 }
 
-function openForm (item) {
+function openForm(item) {
   editing.value = item || null
   form.id = item?.id || ''
   form.name = item?.name || ''
@@ -105,18 +105,18 @@ function openForm (item) {
   showForm.value = true
 }
 
-function closeForm () {
+function closeForm() {
   showForm.value = false
 }
 
-async function save () {
+async function save() {
   if (!window.electron) return
-  const next = await window.electron.saveConnection({ ...form })
+  const next = await window.electron.saveConnection({...form})
   connections.value = next
   showForm.value = false
 }
 
-async function remove (id) {
+async function remove(id) {
   if (!window.electron) return
   const ok = confirm('确定要删除该连接吗？')
   if (!ok) return

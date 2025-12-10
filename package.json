@@ -1,6 +1,6 @@
 {
   "name": "open-s3-ui",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "description": "A desktop S3 browser tool built with Electron and Vue",
   "author": {
     "name": "kk.cheng",
@@ -80,7 +80,10 @@
       "menuCategory": true,
       "include": "build/installer.nsh",
       "displayLanguageSelector": false,
-      "installerLanguages": ["zh_CN", "en_US"],
+      "installerLanguages": [
+        "zh_CN",
+        "en_US"
+      ],
       "language": "2052",
       "warningsAsErrors": false
     },

@@ -8,13 +8,13 @@
 
     <div v-else class="browser-content">
       <!-- 文件列表区域（支持拖拽） -->
-      <div 
-        class="file-area"
-        @drop="onDrop"
-        @dragover="onDragOver"
-        @dragleave="onDragLeave"
-        @contextmenu="onAreaContextMenu"
-        :class="{ 'drag-over': isDragOver }"
+      <div
+          class="file-area"
+          @drop="onDrop"
+          @dragover="onDragOver"
+          @dragleave="onDragLeave"
+          @contextmenu="onAreaContextMenu"
+          :class="{ 'drag-over': isDragOver }"
       >
         <!-- 顶部工具栏 -->
         <div class="toolbar">
@@ -31,17 +31,24 @@
           <div class="toolbar-actions">
             <n-button text @click="toggleViewMode" :title="viewMode === 'grid' ? '列表模式' : '卡片模式'">
               <template #icon>
-                <n-icon><grid-outline v-if="viewMode === 'grid'" /><list-outline v-else /></n-icon>
+                <n-icon>
+                  <grid-outline v-if="viewMode === 'grid'"/>
+                  <list-outline v-else/>
+                </n-icon>
               </template>
             </n-button>
             <n-button text @click="openUploadDialog" title="上传文件">
               <template #icon>
-                <n-icon><cloud-upload-outline /></n-icon>
+                <n-icon>
+                  <cloud-upload-outline/>
+                </n-icon>
               </template>
             </n-button>
             <n-button text @click="reload" title="刷新">
               <template #icon>
-                <n-icon><refresh-outline /></n-icon>
+                <n-icon>
+                  <refresh-outline/>
+                </n-icon>
               </template>
             </n-button>
           </div>
@@ -65,16 +72,16 @@
                 <div class="header-size">大小</div>
                 <div class="header-date">修改时间</div>
               </div>
-              
+
               <!-- 文件夹 -->
               <div
-                v-for="(folder, idx) in folders"
-                :key="folder"
-                :class="['file-item', 'folder', { selected: isSelected(folder) }]"
-                @click="toggleSelect(folder, idx, $event)"
-                @dblclick="enterFolder(folder)"
-                @contextmenu="onContextMenu($event, folder, 'folder')"
-                draggable="false"
+                  v-for="(folder, idx) in folders"
+                  :key="folder"
+                  :class="['file-item', 'folder', { selected: isSelected(folder) }]"
+                  @click="toggleSelect(folder, idx, $event)"
+                  @dblclick="enterFolder(folder)"
+                  @contextmenu="onContextMenu($event, folder, 'folder')"
+                  draggable="false"
               >
                 <div class="item-name">
                   <div class="file-icon">📁</div>
@@ -87,13 +94,13 @@
 
               <!-- 文件 -->
               <div
-                v-for="(file, idx) in files"
-                :key="file.key"
-                :class="['file-item', { selected: isSelected(file.key) }]"
-                @click="toggleSelect(file.key, folders.length + idx, $event)"
-                @contextmenu="onContextMenu($event, file.key, 'file')"
-                draggable="true"
-                @dragstart="onFileDragStart($event, file.key)"
+                  v-for="(file, idx) in files"
+                  :key="file.key"
+                  :class="['file-item', { selected: isSelected(file.key) }]"
+                  @click="toggleSelect(file.key, folders.length + idx, $event)"
+                  @contextmenu="onContextMenu($event, file.key, 'file')"
+                  draggable="true"
+                  @dragstart="onFileDragStart($event, file.key)"
               >
                 <div class="item-name">
                   <div class="file-icon">📄</div>
@@ -104,18 +111,18 @@
                 <div class="item-date">{{ formatDate(file.lastModified) }}</div>
               </div>
             </div>
-            
+
             <!-- 网格模式：卡片布局 -->
             <div v-else class="file-grid">
               <!-- 文件夹 -->
               <div
-                v-for="(folder, idx) in folders"
-                :key="folder"
-                :class="['file-item', 'folder', { selected: isSelected(folder) }]"
-                @click="toggleSelect(folder, idx, $event)"
-                @dblclick="enterFolder(folder)"
-                @contextmenu="onContextMenu($event, folder, 'folder')"
-                draggable="false"
+                  v-for="(folder, idx) in folders"
+                  :key="folder"
+                  :class="['file-item', 'folder', { selected: isSelected(folder) }]"
+                  @click="toggleSelect(folder, idx, $event)"
+                  @dblclick="enterFolder(folder)"
+                  @contextmenu="onContextMenu($event, folder, 'folder')"
+                  draggable="false"
               >
                 <div class="file-icon">📁</div>
                 <div class="file-info">
@@ -125,13 +132,13 @@
 
               <!-- 文件 -->
               <div
-                v-for="(file, idx) in files"
-                :key="file.key"
-                :class="['file-item', { selected: isSelected(file.key) }]"
-                @click="toggleSelect(file.key, folders.length + idx, $event)"
-                @contextmenu="onContextMenu($event, file.key, 'file')"
-                draggable="true"
-                @dragstart="onFileDragStart($event, file.key)"
+                  v-for="(file, idx) in files"
+                  :key="file.key"
+                  :class="['file-item', { selected: isSelected(file.key) }]"
+                  @click="toggleSelect(file.key, folders.length + idx, $event)"
+                  @contextmenu="onContextMenu($event, file.key, 'file')"
+                  draggable="true"
+                  @dragstart="onFileDragStart($event, file.key)"
               >
                 <div class="file-icon">📄</div>
                 <div class="file-info">
@@ -174,10 +181,10 @@
             </div>
           </div>
           <div class="upload-progress">
-            <div 
-              class="upload-progress-bar" 
-              :style="{ width: item.progress + '%' }"
-              :class="{ error: item.status === 'error', success: item.status === 'success' }"
+            <div
+                class="upload-progress-bar"
+                :style="{ width: item.progress + '%' }"
+                :class="{ error: item.status === 'error', success: item.status === 'success' }"
             ></div>
           </div>
         </div>
@@ -185,7 +192,8 @@
     </div>
 
     <!-- 右键菜单 -->
-    <div v-if="contextMenu.show" class="context-menu" :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }">
+    <div v-if="contextMenu.show" class="context-menu"
+         :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }">
       <template v-if="contextMenu.type === 'area'">
         <div class="context-menu-item" @click="openCreateFolderDialog">
           <span>📁</span> 新建文件夹
@@ -223,7 +231,7 @@
           {{ deleteConfirm.name }}
         </p>
         <p v-else class="confirm-message">
-          确定要删除{{ deleteConfirm.type === 'folder' ? '文件夹' : '文件' }}  
+          确定要删除{{ deleteConfirm.type === 'folder' ? '文件夹' : '文件' }}
           <strong>{{ deleteConfirm.name }}</strong> 吗？
         </p>
         <p v-if="deleteConfirm.type === 'folder' || deleteConfirm.type === 'multiple'" class="confirm-warning">
@@ -243,18 +251,19 @@
           <span class="icon-folder">📁</span>
         </div>
         <h3>新建文件夹</h3>
-        <input 
-          ref="folderNameInput"
-          v-model="createFolderDialog.name" 
-          type="text" 
-          class="folder-input" 
-          placeholder="请输入文件夹名称"
-          @keyup.enter="confirmCreateFolder"
-          @keyup.esc="closeCreateFolderDialog"
+        <input
+            ref="folderNameInput"
+            v-model="createFolderDialog.name"
+            type="text"
+            class="folder-input"
+            placeholder="请输入文件夹名称"
+            @keyup.enter="confirmCreateFolder"
+            @keyup.esc="closeCreateFolderDialog"
         />
         <div class="dialog-actions">
           <n-button @click="closeCreateFolderDialog">取消</n-button>
-          <n-button type="primary" @click="confirmCreateFolder" :disabled="!createFolderDialog.name.trim()">创建</n-button>
+          <n-button type="primary" @click="confirmCreateFolder" :disabled="!createFolderDialog.name.trim()">创建
+          </n-button>
         </div>
       </div>
     </div>
@@ -262,13 +271,13 @@
 </template>
 
 <script setup>
-import { watch, ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { NButton, NIcon } from 'naive-ui'
-import { 
-  GridOutline, 
-  ListOutline, 
-  CloudUploadOutline, 
-  RefreshOutline 
+import {watch, ref, computed, onMounted, onBeforeUnmount} from 'vue'
+import {NButton, NIcon} from 'naive-ui'
+import {
+  GridOutline,
+  ListOutline,
+  CloudUploadOutline,
+  RefreshOutline
 } from '@vicons/ionicons5'
 
 const props = defineProps({
@@ -322,8 +331,8 @@ const pathParts = computed(() => {
 
 const allItems = computed(() => {
   return [
-    ...folders.value.map(f => ({ key: f, type: 'folder', name: lastPart(f) })),
-    ...files.value.map(f => ({ key: f.key, type: 'file', name: fileName(f.key), size: f.size }))
+    ...folders.value.map(f => ({key: f, type: 'folder', name: lastPart(f)})),
+    ...files.value.map(f => ({key: f.key, type: 'file', name: fileName(f.key), size: f.size}))
   ]
 })
 
@@ -331,7 +340,7 @@ const selectedCount = computed(() => selectedItems.value.size)
 
 const totalCount = computed(() => folders.value.length + files.value.length)
 
-async function reload () {
+async function reload() {
   if (!window.electron || !props.currentConnectionId) return
   loading.value = true
   try {
@@ -349,33 +358,33 @@ async function reload () {
   }
 }
 
-function enterFolder (folderPrefix) {
+function enterFolder(folderPrefix) {
   prefix.value = folderPrefix
   reload()
 }
 
-function goToRoot () {
+function goToRoot() {
   prefix.value = ''
   reload()
 }
 
-function goToPath (idx) {
+function goToPath(idx) {
   const parts = pathParts.value.slice(0, idx + 1)
   prefix.value = parts.join('/') + '/'
   reload()
 }
 
 // 视图模式切换
-function toggleViewMode () {
+function toggleViewMode() {
   viewMode.value = viewMode.value === 'grid' ? 'list' : 'grid'
 }
 
 // 多选功能
-function isSelected (key) {
+function isSelected(key) {
   return selectedItems.value.has(key)
 }
 
-function toggleSelect (key, index, event) {
+function toggleSelect(key, index, event) {
   // 阻止双击时的选择逻辑
   if (event.detail === 2) {
     return
@@ -408,27 +417,27 @@ function toggleSelect (key, index, event) {
   }
 }
 
-function selectAll () {
+function selectAll() {
   selectedItems.value.clear()
   allItems.value.forEach(item => {
     selectedItems.value.add(item.key)
   })
 }
 
-function clearSelection () {
+function clearSelection() {
   selectedItems.value.clear()
 }
 
-function onContentClick (e) {
+function onContentClick(e) {
   // 点击的是 .file-content 或 .file-grid/.file-list 的空白区域时取消选择
-  if (e.target.classList.contains('file-content') || 
+  if (e.target.classList.contains('file-content') ||
       e.target.classList.contains('file-grid') ||
       e.target.classList.contains('file-list')) {
     clearSelection()
   }
 }
 
-function handleKeyDown (e) {
+function handleKeyDown(e) {
   if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
     e.preventDefault()
     selectAll()
@@ -437,17 +446,17 @@ function handleKeyDown (e) {
   }
 }
 
-function lastPart (p) {
+function lastPart(p) {
   const parts = p.split('/').filter(Boolean)
   return parts[parts.length - 1]
 }
 
-function fileName (key) {
+function fileName(key) {
   const parts = key.split('/')
   return parts[parts.length - 1]
 }
 
-function formatSize (size) {
+function formatSize(size) {
   if (!size && size !== 0) return '-'
   if (size < 1024) return size + ' B'
   if (size < 1024 * 1024) return (size / 1024).toFixed(1) + ' KB'
@@ -456,17 +465,17 @@ function formatSize (size) {
 }
 
 // 格式化日期
-function formatDate (date) {
+function formatDate(date) {
   if (!date) return '--'
-  
+
   const d = new Date(date)
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000)
   const fileDate = new Date(d.getFullYear(), d.getMonth(), d.getDate())
-  
-  const timeStr = d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false })
-  
+
+  const timeStr = d.toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit', hour12: false})
+
   if (fileDate.getTime() === today.getTime()) {
     return `今天 ${timeStr}`
   } else if (fileDate.getTime() === yesterday.getTime()) {
@@ -479,7 +488,7 @@ function formatDate (date) {
 }
 
 // 获取文件类型
-function getFileKind (filename) {
+function getFileKind(filename) {
   const ext = filename.split('.').pop().toLowerCase()
   const kindMap = {
     'txt': '文本文档',
@@ -514,17 +523,17 @@ function getFileKind (filename) {
 }
 
 // 拖拽上传
-function onDragOver (e) {
+function onDragOver(e) {
   e.preventDefault()
   isDragOver.value = true
 }
 
-function onDragLeave (e) {
+function onDragLeave(e) {
   e.preventDefault()
   isDragOver.value = false
 }
 
-async function onDrop (e) {
+async function onDrop(e) {
   e.preventDefault()
   isDragOver.value = false
 
@@ -532,7 +541,7 @@ async function onDrop (e) {
 
   const items = Array.from(e.dataTransfer.items || [])
   const files = []
-  
+
   for (const item of items) {
     if (item.kind === 'file') {
       const file = item.getAsFile()
@@ -573,7 +582,7 @@ async function onDrop (e) {
           buffer: Array.from(new Uint8Array(arrayBuffer))
         })
       }
-      
+
       const idx = uploadList.value.findIndex(u => u.id === uploadId)
       if (idx !== -1) {
         uploadList.value[idx].status = 'success'
@@ -592,7 +601,7 @@ async function onDrop (e) {
   }
 }
 
-function handleUploadProgress (data) {
+function handleUploadProgress(data) {
   const item = uploadList.value.find(u => u.path === data.filePath && u.status === 'uploading')
   if (item) {
     item.uploaded = data.uploaded
@@ -601,12 +610,12 @@ function handleUploadProgress (data) {
   }
 }
 
-function clearCompleted () {
+function clearCompleted() {
   uploadList.value = uploadList.value.filter(u => u.status === 'uploading')
 }
 
 // 右键菜单
-function onContextMenu (e, target, type) {
+function onContextMenu(e, target, type) {
   e.preventDefault()
   e.stopPropagation()
   contextMenu.value = {
@@ -618,9 +627,9 @@ function onContextMenu (e, target, type) {
   }
 }
 
-function onAreaContextMenu (e) {
+function onAreaContextMenu(e) {
   // 只有点击的是 .file-area 或 .file-content 才显示空白菜单
-  if (e.target.classList.contains('file-area') || 
+  if (e.target.classList.contains('file-area') ||
       e.target.classList.contains('file-content') ||
       e.target.classList.contains('empty-folder')) {
     e.preventDefault()
@@ -634,28 +643,28 @@ function onAreaContextMenu (e) {
   }
 }
 
-function closeContextMenu () {
+function closeContextMenu() {
   contextMenu.value.show = false
 }
 
 // 从菜单中刷新
-function refreshFromMenu () {
+function refreshFromMenu() {
   closeContextMenu()
   reload()
 }
 
-function downloadItem () {
+function downloadItem() {
   if (!window.electron || !props.currentConnectionId) return
-  
+
   const key = contextMenu.value.target
   const name = contextMenu.value.type === 'folder' ? lastPart(key) : fileName(key)
-  
+
   if (contextMenu.value.type === 'folder') {
     alert('文件夹下载功能待实现，请先下载单个文件')
     closeContextMenu()
     return
   }
-  
+
   window.electron.downloadFile({
     connectionId: props.currentConnectionId,
     key,
@@ -667,24 +676,24 @@ function downloadItem () {
   }).catch(err => {
     alert('下载失败：' + err.message)
   })
-  
+
   closeContextMenu()
 }
 
-async function openUploadDialog () {
+async function openUploadDialog() {
   closeContextMenu()
-  
+
   if (!window.electron || !props.currentConnectionId) return
-  
+
   const result = await window.electron.openFileDialog()
   if (result.canceled || !result.filePaths) return
-  
+
   // 遍历所有选中的路径（可能是文件或文件夹）
   for (const selectedPath of result.filePaths) {
     try {
       // 获取该路径下的所有文件（如果是文件夹则递归获取）
       const files = await window.electron.getFilesInDirectory(selectedPath)
-      
+
       // 为每个文件创建上传任务
       for (const file of files) {
         const uploadId = ++uploadIdCounter
@@ -721,7 +730,7 @@ async function openUploadDialog () {
           alert(`上传失败：${file.relativePath}\n${err.message}`)
         }
       }
-      
+
       // 所有文件上传完成后刷新
       reload()
     } catch (err) {
@@ -731,17 +740,17 @@ async function openUploadDialog () {
   }
 }
 
-function deleteItem () {
+function deleteItem() {
   // 如果有多选，且右击的项在选中项中，则删除所有选中项
   const isTargetSelected = selectedItems.value.has(contextMenu.value.target)
   const hasMultipleSelection = selectedItems.value.size > 0
-  
+
   if (isTargetSelected && hasMultipleSelection) {
     // 批量删除选中的所有项
     const itemsToDelete = Array.from(selectedItems.value)
     const folderCount = itemsToDelete.filter(key => key.endsWith('/')).length
     const fileCount = itemsToDelete.length - folderCount
-    
+
     let message = `确定要删除选中的 ${itemsToDelete.length} 项吗？`
     if (folderCount > 0 && fileCount > 0) {
       message = `确定要删除选中的 ${folderCount} 个文件夹和 ${fileCount} 个文件吗？`
@@ -750,7 +759,7 @@ function deleteItem () {
     } else {
       message = `确定要删除选中的 ${fileCount} 个文件吗？`
     }
-    
+
     deleteConfirm.value = {
       show: true,
       target: itemsToDelete,  // 传递数组
@@ -769,20 +778,20 @@ function deleteItem () {
   closeContextMenu()
 }
 
-function closeDeleteConfirm () {
+function closeDeleteConfirm() {
   deleteConfirm.value.show = false
 }
 
-async function confirmDelete () {
+async function confirmDelete() {
   if (!window.electron || !props.currentConnectionId) return
-  
+
   try {
     if (deleteConfirm.value.type === 'multiple') {
       // 批量删除
       const items = deleteConfirm.value.target  // 数组
       let successCount = 0
       let errorCount = 0
-      
+
       for (const item of items) {
         try {
           if (item.endsWith('/')) {
@@ -804,13 +813,13 @@ async function confirmDelete () {
           errorCount++
         }
       }
-      
+
       closeDeleteConfirm()
-      
+
       if (errorCount > 0) {
         alert(`删除完成：成功 ${successCount} 项，失败 ${errorCount} 项`)
       }
-      
+
       reload()
       selectedItems.value.clear()  // 清空选中项
     } else if (deleteConfirm.value.type === 'folder') {
@@ -836,7 +845,7 @@ async function confirmDelete () {
 }
 
 // 新建文件夹
-function openCreateFolderDialog () {
+function openCreateFolderDialog() {
   createFolderDialog.value = {
     show: true,
     name: ''
@@ -848,28 +857,28 @@ function openCreateFolderDialog () {
   }, 100)
 }
 
-function closeCreateFolderDialog () {
+function closeCreateFolderDialog() {
   createFolderDialog.value.show = false
   createFolderDialog.value.name = ''
 }
 
-async function confirmCreateFolder () {
+async function confirmCreateFolder() {
   const folderName = createFolderDialog.value.name.trim()
   if (!folderName) return
-  
+
   if (!window.electron || !props.currentConnectionId) return
-  
+
   try {
     // S3 中文件夹通过上传一个空对象实现，键名以 / 结尾
     const folderKey = prefix.value + folderName + '/'
-    
+
     // 调用上传接口，上传一个空文件代表文件夹
     // 这里需要在主进程增加一个创建文件夹的接口
     await window.electron.createFolder({
       connectionId: props.currentConnectionId,
       folderKey: folderKey
     })
-    
+
     closeCreateFolderDialog()
     reload()
   } catch (err) {
@@ -878,7 +887,7 @@ async function confirmCreateFolder () {
 }
 
 // 拖拽下载
-function onFileDragStart (e, key) {
+function onFileDragStart(e, key) {
   e.dataTransfer.effectAllowed = 'copy'
   e.dataTransfer.setData('DownloadURL', `application/octet-stream:${fileName(key)}:${key}`)
 }
@@ -898,16 +907,16 @@ onBeforeUnmount(() => {
 })
 
 watch(
-  () => props.currentConnectionId,
-  () => {
-    prefix.value = ''
-    folders.value = []
-    files.value = []
-    if (props.currentConnectionId) {
-      reload()
-    }
-  },
-  { immediate: true }
+    () => props.currentConnectionId,
+    () => {
+      prefix.value = ''
+      folders.value = []
+      files.value = []
+      if (props.currentConnectionId) {
+        reload()
+      }
+    },
+    {immediate: true}
 )
 </script>
 
