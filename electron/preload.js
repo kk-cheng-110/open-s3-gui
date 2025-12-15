@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld('electron', {
     deleteFolder: (params) => ipcRenderer.invoke('s3:deleteFolder', params),
     downloadFile: (params) => ipcRenderer.invoke('s3:downloadFile', params),
     openFileDialog: () => ipcRenderer.invoke('dialog:openFile'),
+    openDirectoryDialog: () => ipcRenderer.invoke('dialog:openDirectory'),
     getFilesInDirectory: (dirPath) => ipcRenderer.invoke('fs:getFilesInDirectory', dirPath),
     onUploadProgress: (callback) => {
         ipcRenderer.on('upload:progress', (_event, data) => callback(data))

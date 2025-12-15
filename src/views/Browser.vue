@@ -62,13 +62,15 @@
                 </n-icon>
               </template>
             </n-button>
-            <n-button text @click="openUploadDialog" title="上传文件">
-              <template #icon>
-                <n-icon>
-                  <cloud-upload-outline/>
-                </n-icon>
-              </template>
-            </n-button>
+            <n-dropdown :options="uploadOptions" @select="handleUploadSelect">
+              <n-button text title="上传">
+                <template #icon>
+                  <n-icon>
+                    <cloud-upload-outline/>
+                  </n-icon>
+                </template>
+              </n-button>
+            </n-dropdown>
             <n-button text @click="reload" title="刷新">
               <template #icon>
                 <n-icon>
@@ -85,7 +87,7 @@
           <div v-else-if="folders.length === 0 && files.length === 0" class="empty-folder">
             <div class="empty-icon">📂</div>
             <div class="empty-text">当前文件夹为空</div>
-            <div class="empty-hint">可拖拽文件到此处上传，或右键选择操作</div>
+            <div class="empty-hint">请使用工具栏的“上传”按钮，或右键选择操作</div>
           </div>
           <div v-else>
             <!-- 列表模式：表格布局 -->
@@ -223,8 +225,12 @@
         <div class="context-menu-item" @click="openCreateFolderDialog">
           <span>📁</span> 新建文件夹
         </div>
-        <div class="context-menu-item" @click="openUploadDialog">
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" @click="openFileUploadDialog">
           <span>📄</span> 上传文件
+        </div>
+        <div class="context-menu-item" @click="openFolderUploadDialog">
+          <span>📁</span> 上传文件夹
         </div>
         <div class="context-menu-divider"></div>
         <div class="context-menu-item" @click="refreshFromMenu">
@@ -297,7 +303,7 @@
 
 <script setup>
 import {watch, ref, computed, onMounted, onBeforeUnmount, nextTick} from 'vue'
-import {NButton, NIcon} from 'naive-ui'
+import {NButton, NIcon, NDropdown} from 'naive-ui'
 import {
   GridOutline,
   ListOutline,
@@ -370,6 +376,27 @@ const allItems = computed(() => {
 const selectedCount = computed(() => selectedItems.value.size)
 
 const totalCount = computed(() => folders.value.length + files.value.length)
+
+// 上传选项
+const uploadOptions = [
+  {
+    label: '上传文件',
+    key: 'file'
+  },
+  {
+    label: '上传文件夹',
+    key: 'folder'
+  }
+]
+
+// 处理上传选择
+function handleUploadSelect(key) {
+  if (key === 'file') {
+    openFileUploadDialog()
+  } else if (key === 'folder') {
+    openFolderUploadDialog()
+  }
+}
 
 async function reload() {
   if (!window.electron || !props.currentConnectionId) return
@@ -610,17 +637,21 @@ async function onDrop(e) {
 
   if (!window.electron || !props.currentConnectionId) return
 
-  const items = Array.from(e.dataTransfer.items || [])
-  const files = []
+  // 直接使用 e.dataTransfer.files 而不是 items
+  const files = Array.from(e.dataTransfer.files || [])
 
-  for (const item of items) {
-    if (item.kind === 'file') {
-      const file = item.getAsFile()
-      if (file) {
-        files.push(file)
-      }
-    }
-  }
+  // 调试：输出文件信息
+  console.log('=== 拖拽上传调试 ===')
+  console.log('文件数量:', files.length)
+  files.forEach((file, idx) => {
+    console.log(`文件 ${idx + 1}:`, {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      path: file.path,
+      hasPath: !!file.path
+    })
+  })
 
   for (const file of files) {
     const uploadId = ++uploadIdCounter
@@ -636,22 +667,26 @@ async function onDrop(e) {
     uploadList.value.push(item)
 
     try {
-      // 如果有 path 属性，直接上传文件路径
+      // Electron 环境下拖拽的文件通常都有 path 属性
       if (file.path) {
+        console.log('使用文件路径上传:', file.path)
         await window.electron.uploadFile({
           connectionId: props.currentConnectionId,
           prefix: prefix.value,
           filePath: file.path
         })
       } else {
-        // 没有 path 属性，读取文件内容后上传
-        const arrayBuffer = await file.arrayBuffer()
-        await window.electron.uploadBuffer({
-          connectionId: props.currentConnectionId,
-          prefix: prefix.value,
-          fileName: file.name,
-          buffer: Array.from(new Uint8Array(arrayBuffer))
+        // 没有 path 属性，可能的原因：
+        // 1. 在浏览器中直接访问（非 Electron 环境）
+        // 2. Electron 33.4+ 的严格沙箱机制
+        console.error('无法获取文件路径')
+        console.error('window.electron 是否存在:', !!window.electron)
+        console.error('当前环境:', {
+          userAgent: navigator.userAgent,
+          platform: navigator.platform,
+          isElectron: /Electron/i.test(navigator.userAgent)
         })
+        throw new Error('拖拽上传不可用，请使用工具栏的“上传”按钮选择文件')
       }
 
       const idx = uploadList.value.findIndex(u => u.id === uploadId)
@@ -751,7 +786,8 @@ function downloadItem() {
   closeContextMenu()
 }
 
-async function openUploadDialog() {
+// 上传文件
+async function openFileUploadDialog() {
   closeContextMenu()
 
   if (!window.electron || !props.currentConnectionId) return
@@ -759,7 +795,56 @@ async function openUploadDialog() {
   const result = await window.electron.openFileDialog()
   if (result.canceled || !result.filePaths) return
 
-  // 遍历所有选中的路径（可能是文件或文件夹）
+  // 遍历所有选中的文件
+  for (const filePath of result.filePaths) {
+    const uploadId = ++uploadIdCounter
+    const fileName = filePath.split(/[\\/]/).pop() || filePath // 兼容 Windows 和 Unix 路径
+    const item = {
+      id: uploadId,
+      name: fileName,
+      path: filePath,
+      total: 0,
+      uploaded: 0,
+      progress: 0,
+      status: 'uploading'
+    }
+    uploadList.value.push(item)
+
+    try {
+      await window.electron.uploadFile({
+        connectionId: props.currentConnectionId,
+        prefix: prefix.value,
+        filePath: filePath
+      })
+      const idx = uploadList.value.findIndex(u => u.id === uploadId)
+      if (idx !== -1) {
+        uploadList.value[idx].status = 'success'
+        uploadList.value[idx].progress = 100
+      }
+    } catch (err) {
+      const idx = uploadList.value.findIndex(u => u.id === uploadId)
+      if (idx !== -1) {
+        uploadList.value[idx].status = 'error'
+      }
+      console.error('上传失败', err)
+      alert(`上传失败：${fileName}\n${err.message}`)
+    }
+  }
+
+  // 所有文件上传完成后刷新
+  reload()
+}
+
+// 上传文件夹
+async function openFolderUploadDialog() {
+  closeContextMenu()
+
+  if (!window.electron || !props.currentConnectionId) return
+
+  const result = await window.electron.openDirectoryDialog()
+  if (result.canceled || !result.filePaths) return
+
+  // 遍历所有选中的文件夹
   for (const selectedPath of result.filePaths) {
     try {
       // 获取该路径下的所有文件（如果是文件夹则递归获取）
@@ -1294,6 +1379,7 @@ watch(
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }

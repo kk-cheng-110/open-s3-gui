@@ -226,8 +226,22 @@ app.whenReady().then(() => {
 
     ipcMain.handle('dialog:openFile', async () => {
         const result = await dialog.showOpenDialog(mainWindow, {
-            properties: ['openFile', 'openDirectory', 'multiSelections'],
-            title: '选择要上传的文件或文件夹'
+            properties: ['openFile', 'multiSelections'],
+            title: '选择要上传的文件'
+        })
+
+        if (result.canceled || !result.filePaths || result.filePaths.length === 0) {
+            return {canceled: true}
+        }
+
+        return {filePaths: result.filePaths}
+    })
+
+    // 选择文件夹
+    ipcMain.handle('dialog:openDirectory', async () => {
+        const result = await dialog.showOpenDialog(mainWindow, {
+            properties: ['openDirectory'],
+            title: '选择要上传的文件夹'
         })
 
         if (result.canceled || !result.filePaths || result.filePaths.length === 0) {
